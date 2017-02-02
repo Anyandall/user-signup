@@ -46,12 +46,13 @@ class MainHandler(webapp2.RequestHandler):
 		
 	def post(self):
 		username = self.request.get("UserName")
+		greeting = "Thanks for logging in, " + username + "!"
 	#	message = self.request.get('message')
 	#	rotation = int(self.request.get("rotation"))
 	#	encrypted_message = caesar.encrypt(message, rotation)
 	#	escaped_message = cgi.escape(encrypted_message)
 	#	content = build_page(escaped_message)
-		self.response.write("Thanks for logging in, " + username + "!")
+		self.response.write(greeting)
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
