@@ -96,8 +96,12 @@ class MainHandler(webapp2.RequestHandler):
 		greeting = "Thanks for logging in, " + username + "!"
 		if has_valid_username and has_valid_password:
 			self.response.write(greeting)
+		elif has_valid_password and not has_valid_username:
+			self.write_form("Username not valid.")
+		elif has_valid_username and not has_valid_password:
+			self.write_form("Password does not match.", username)
 		else:
-			self.write_form("Invalid submission!", username)
+			self.write_form("Invalid Username and Password does not match!")
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
