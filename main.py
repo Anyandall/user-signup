@@ -54,26 +54,41 @@ def build_page(textarea_content):
 	return form
 	
 def valid_username(username):
-	invalid_characters = string.punctuation
+	invalid_characters = string.punctuation + " "
+
+	if len(username) < 8:
+		print ("Username cannot contain less than 8 characters!")
+		return False
 	for character in username:
 	    if character in invalid_characters:
 	        print (username + " contains the following invalid character: " + character)
 	        return False
+	if len(username) > 40:
+		print ("Username cannot contain more than 40 characters!")
+		return False
 	print (username + " is a valid username!")
 	return True
+	
+def valid_password(password, verify_password):
+	if password == verify_password:
+		return True
+	return False
 
 class MainHandler(webapp2.RequestHandler):
+	
 	def get(self):
 		content = build_page("")
 		self.response.write(content)
 		
 	def post(self):
 		username = self.request.get("UserName")
+		password = self.request.get("Password")
+		verify_password = self.request.get("VerifyPassword")
 		greeting = "Thanks for logging in, " + username + "!"
-		if not valid_username(username):
-			self.response.write(form)
-		else:
+		if valid_username(username) and valid_password(password, verify_password):
 			self.response.write(greeting)
+		else:
+			self.response.write(form)
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
