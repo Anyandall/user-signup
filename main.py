@@ -16,6 +16,24 @@
 #
 import webapp2
 import cgi
+import string
+
+
+form = """
+<h2>Signup</h2>
+<form method='post'>
+	<label>Username</label>
+	<input type='text' name='UserName'/><br>
+	<label>Password</label>
+	<input type='password' name='Password'/><br>
+	<label>Verify Password</label>
+	<input type='password' name='VerifyPassword'/><br>
+	<label>Email (optional)</label>
+	<input type='email' name='Email'/><br>
+	<br>
+	<input type='submit'/>
+</form>
+"""
 
 def build_page(textarea_content):
 
@@ -32,12 +50,17 @@ def build_page(textarea_content):
 	email_input = "<input type='email' name='Email'/>"
 	
 	submit = "<input type='submit'/>"
-	form = ("<form method='post'>" +
-		username_label + username_input + "<br>" + password_label + password_input + "<br>" + verify_label + verify_input + "<br>" + email_label + email_input + "<br>" + "<br>" + submit + "</form>")
-		
-	header = "<h2>Signup</h2>"
 	
-	return header + form
+	return form
+	
+def valid_username(username):
+	invalid_characters = string.punctuation
+	for character in username:
+	    if character in invalid_characters:
+	        print (username + " contains the following invalid character: " + character)
+	        return False
+	print (username + " is a valid username!")
+	return True
 
 class MainHandler(webapp2.RequestHandler):
 	def get(self):
@@ -47,12 +70,10 @@ class MainHandler(webapp2.RequestHandler):
 	def post(self):
 		username = self.request.get("UserName")
 		greeting = "Thanks for logging in, " + username + "!"
-	#	message = self.request.get('message')
-	#	rotation = int(self.request.get("rotation"))
-	#	encrypted_message = caesar.encrypt(message, rotation)
-	#	escaped_message = cgi.escape(encrypted_message)
-	#	content = build_page(escaped_message)
-		self.response.write(greeting)
+		if not valid_username(username):
+			self.response.write(form)
+		else:
+			self.response.write(greeting)
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
