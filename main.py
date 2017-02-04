@@ -30,7 +30,7 @@ form = """
 	<label>Verify Password</label>
 	<input type='password' name='VerifyPassword'/><br>
 	<label>Email (optional)</label>
-	<input type='email' name='Email'/>
+	<input type='email' name='Email' value='%(email)s'/>
 	<div style="color: red">%(error)s</div>
 	<input type='submit'/>
 </form>
@@ -77,9 +77,10 @@ def valid_password(password, verify_password):
 
 class MainHandler(webapp2.RequestHandler):
 
-	def write_form(self, error="", username=""):
+	def write_form(self, error="", username="", email=""):
 		self.response.write(form % {"error": error,
 									"username": username,
+									"email": email
 									})
 	
 	def get(self):
@@ -89,6 +90,7 @@ class MainHandler(webapp2.RequestHandler):
 		username = self.request.get("UserName")
 		password = self.request.get("Password")
 		verify_password = self.request.get("VerifyPassword")
+		email = self.request.get("Email")
 		
 		has_valid_username = valid_username(username)
 		has_valid_password = valid_password(password, verify_password)
@@ -99,7 +101,7 @@ class MainHandler(webapp2.RequestHandler):
 		elif has_valid_password and not has_valid_username:
 			self.write_form("Username not valid.")
 		elif has_valid_username and not has_valid_password:
-			self.write_form("Password does not match.", username)
+			self.write_form("Password does not match.", username, email)
 		else:
 			self.write_form("Invalid Username and Password does not match!")
 		
