@@ -24,13 +24,14 @@ form = """
 <form method='post'>
 	<label>Username</label>
 	<input type='text' name='UserName'/><br>
+
 	<label>Password</label>
 	<input type='password' name='Password'/><br>
 	<label>Verify Password</label>
 	<input type='password' name='VerifyPassword'/><br>
 	<label>Email (optional)</label>
-	<input type='email' name='Email'/><br>
-	<br>
+	<input type='email' name='Email'/>
+	<div style="color: red">%(error)s</div>
 	<input type='submit'/>
 </form>
 """
@@ -75,10 +76,15 @@ def valid_password(password, verify_password):
 	return False
 
 class MainHandler(webapp2.RequestHandler):
+
+	def write_form(self, error="", username="", valid_password=""):
+		self.response.write(form % {"error": error,
+									"UserName": username,
+									"ValidPassword": valid_password
+									})
 	
 	def get(self):
-		content = build_page("")
-		self.response.write(content)
+		self.write_form()
 		
 	def post(self):
 		username = self.request.get("UserName")
@@ -88,7 +94,7 @@ class MainHandler(webapp2.RequestHandler):
 		if valid_username(username) and valid_password(password, verify_password):
 			self.response.write(greeting)
 		else:
-			self.response.write(form)
+			self.write_form("Invalid submission!")
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
