@@ -22,16 +22,33 @@ import string
 form = """
 <h2>Signup</h2>
 <form method='post'>
-	<label>Username</label>
-	<input type='text' name='UserName' value='%(username)s'/><br>
-
-	<label>Password</label>
-	<input type='password' name='Password'/><br>
-	<label>Verify Password</label>
-	<input type='password' name='VerifyPassword'/><br>
-	<label>Email (optional)</label>
-	<input type='email' name='Email' value='%(email)s'/>
-	<div style="color: red">%(error)s</div>
+	<table>
+		<tr>
+			<td><label>Username</label></td>
+			<td><input type='text' name='UserName' value='%(username)s'/>
+				<span class="username_error" style="color: red">%(username_error)s</span>
+			</td>
+		</tr>
+		<tr>
+			<td><label>Password</label></td>
+			<td><input type='password' name='Password'/>
+				<span class="password_error" style="color: red">%(password_error)s</span>
+			</td>
+		</tr>
+		<tr>
+			<td><label>Verify Password</label></td>
+			<td><input type='password' name='VerifyPassword'/>
+				<span class="verify_error" style="color: red">%(verify_error)s</span>
+			</td>
+		</tr>
+		<tr>
+			<td><label>Email (optional)</label></td>
+			<td><input type='email' name='Email' value='%(email)s'/>
+				<span class="email_error" style="color: red"></span>
+			
+		</tr>
+	</table>
+	
 	<input type='submit'/>
 </form>
 """
@@ -70,17 +87,32 @@ def valid_username(username):
 	print (username + " is a valid username!")
 	return True
 	
-def valid_password(password, verify_password):
+def valid_password(password):
+	if len(password) < 6:
+		return False
+	return True
+	
+def match_password(password, verify_password):
 	if password == verify_password:
+		return True
+	return False
+	
+def valid_email(email):
+	if "@gmail" in str(email):
+		return True
+	if len(email) == 0:
 		return True
 	return False
 
 class MainHandler(webapp2.RequestHandler):
 
-	def write_form(self, error="", username="", email=""):
-		self.response.write(form % {"error": error,
-									"username": username,
-									"email": email
+	def write_form(self, username="", username_error="", password_error="", verify_error="", email="", email_error=""):
+		self.response.write(form % {"username": username,
+									"username_error": username_error,
+									"password_error": password_error,
+									"verify_error": verify_error,
+									"email": email,
+									"email_error": email_error
 									})
 	
 	def get(self):
@@ -93,17 +125,21 @@ class MainHandler(webapp2.RequestHandler):
 		email = self.request.get("Email")
 		
 		has_valid_username = valid_username(username)
-		has_valid_password = valid_password(password, verify_password)
+		has_valid_password = valid_password(password)
+		has_match_password = match_password(password, verify_password)
+		has_valid_email = valid_email(email)
 		
 		greeting = "Thanks for logging in, " + username + "!"
-		if has_valid_username and has_valid_password:
+		if has_valid_username and has_valid_password and has_match_password:
 			self.response.write(greeting)
-		elif has_valid_password and not has_valid_username:
-			self.write_form("Username not valid.")
+		elif not has_valid_username and has_valid_email:
+			self.write_form("", "Username must be between 8 and 40 characters and not contain spaces or punctuation.", "", "", email, "")
 		elif has_valid_username and not has_valid_password:
-			self.write_form("Password does not match.", username, email)
-		else:
-			self.write_form("Invalid Username and Password does not match!")
+			self.write_form(username, "", "Passwords must be at least 6 characters.", "", email, "")
+		elif has_valid_username and has_valid_password and not has_match_password:
+			self.write_form(username, "", "", "Password does not match!", email, "")
+		elif has_valid_username and not has_valid_email:
+			self.write_form(username, "", "", "", "", "Not a valid email address.")
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
