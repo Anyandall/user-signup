@@ -17,6 +17,7 @@
 import webapp2
 import cgi
 import string
+import re
 
 
 form = """
@@ -70,39 +71,44 @@ def build_page(textarea_content):
 	submit = "<input type='submit'/>"
 	
 	return form
-	
-def valid_username(username):
-	invalid_characters = string.punctuation + " "
 
-	if len(username) < 8:
-		print ("Username cannot contain less than 8 characters!")
-		return False
-	for character in username:
-	    if character in invalid_characters:
-	        print (username + " contains the following invalid character: " + character)
-	        return False
-	if len(username) > 40:
-		print ("Username cannot contain more than 40 characters!")
-		return False
-	print (username + " is a valid username!")
-	return True
-	
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")	
+def valid_username(username):
+	return username and USER_RE.match(username)
+#	invalid_characters = string.punctuation + " "
+#
+#	if len(username) < 8:
+#		print ("Username cannot contain less than 8 characters!")
+#		return False
+#	for character in username:
+#	    if character in invalid_characters:
+#	        print (username + " contains the following invalid character: " + character)
+#	        return False
+#	if len(username) > 40:
+#		print ("Username cannot contain more than 40 characters!")
+#		return False
+#	print (username + " is a valid username!")
+#	return True
+PASS_RE = re.compile(r"^.{3,20}$")
 def valid_password(password):
-	if len(password) < 6:
-		return False
-	return True
+	return password and PASS_RE.match(password)
+#	if len(password) < 6:
+#		return False
+#	return True
 	
 def match_password(password, verify_password):
 	if password == verify_password:
 		return True
 	return False
 	
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
 def valid_email(email):
-	if "@gmail" in str(email):
-		return True
-	if len(email) == 0:
-		return True
-	return False
+	return not email or EMAIL_RE.match(email)
+#	if "@gmail" in str(email):
+#		return True
+#	if len(email) == 0:
+#		return True
+#	return False
 
 class MainHandler(webapp2.RequestHandler):
 
@@ -124,6 +130,7 @@ class MainHandler(webapp2.RequestHandler):
 		verify_password = self.request.get("VerifyPassword")
 		email = self.request.get("Email")
 		
+		
 		has_valid_username = valid_username(username)
 		has_valid_password = valid_password(password)
 		has_match_password = match_password(password, verify_password)
@@ -131,19 +138,32 @@ class MainHandler(webapp2.RequestHandler):
 		
 		greeting = "Thanks for logging in, " + username + "!"
 		if has_valid_username and has_valid_password and has_match_password:
-			self.response.write(greeting)
+			self.redirect("/Welcome?username=" + username)
 		elif not has_valid_username and has_valid_email:
-			self.write_form("", "Username must be between 8 and 40 characters and not contain spaces or punctuation.", "", "", email, "")
+			self.write_form("", "Username must be between 3 and 20 characters.", "", "", email, "")
 		elif has_valid_username and not has_valid_password:
-			self.write_form(username, "", "Passwords must be at least 6 characters.", "", email, "")
+			self.write_form(username, "", "Passwords must be between 3 and 20 characters.", "", email, "")
 		elif has_valid_username and has_valid_password and not has_match_password:
 			self.write_form(username, "", "", "Password does not match!", email, "")
-		elif has_valid_username and not has_valid_email:
-			self.write_form(username, "", "", "", "", "Not a valid email address.")
+		elif has_valid_username and not has_valid_password and not has_valid_email:
+			self.write_form(username, "", "Invalid password.", "", "", "Not a valid email address.")
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
-		self.response.write("Welcome, ")
+		
+		username = self.request.get("UserName")
+		welcome_form = """
+		<!DOCTYPE=html>
+<html>
+<head>
+	<title>Signup</title>
+</head>
+<body>
+	<h2>Welcome, %(username)s!</h2>
+</body>
+</html>
+"""
+		self.response.write(welcome_form)
 		
 
 app = webapp2.WSGIApplication([
