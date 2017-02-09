@@ -44,8 +44,8 @@ form = """
 		</tr>
 		<tr>
 			<td><label>Email (optional)</label></td>
-			<td><input type='email' name='Email' value='%(email)s'/>
-				<span class="email_error" style="color: red"></span>
+			<td><input type='text' name='Email' value='%(email)s'/>
+				<span class="email_error" style="color: red">%(email_error)s</span>
 			
 		</tr>
 	</table>
@@ -66,7 +66,7 @@ def build_page(textarea_content):
 	verify_input = "<input type='password' name='VerifyPassword'/>"
 	
 	email_label = "<label>Email (optional)</label>"
-	email_input = "<input type='email' name='Email'/>"
+	email_input = "<input type='text' name='Email'/>"
 	
 	submit = "<input type='submit'/>"
 	
@@ -102,8 +102,11 @@ def match_password(password, verify_password):
 	return False
 	
 EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
+#EMAIL_RE = re.compile([^@]+@[^@]+\.[^@]+)
 def valid_email(email):
-	return not email or EMAIL_RE.match(email)
+	return EMAIL_RE.match(email)
+	#return not email or EMAIL_RE.match(email)
+
 #	if "@gmail" in str(email):
 #		return True
 #	if len(email) == 0:
@@ -136,17 +139,29 @@ class MainHandler(webapp2.RequestHandler):
 		has_match_password = match_password(password, verify_password)
 		has_valid_email = valid_email(email)
 		
+		username_error = "Username must be between 3 and 20 characters."
+		password_error = "Password must be between 3 and 20 characters."
+		verify_error = "Passwords do not match."
+		email_error = "That is not a valid email."
+		
 		greeting = "Thanks for logging in, " + username + "!"
-		if has_valid_username and has_valid_password and has_match_password:
-			self.redirect("/Welcome?username=" + username)
-		elif not has_valid_username and has_valid_email:
-			self.write_form("", "Username must be between 3 and 20 characters.", "", "", email, "")
-		elif has_valid_username and not has_valid_password:
-			self.write_form(username, "", "Passwords must be between 3 and 20 characters.", "", email, "")
-		elif has_valid_username and has_valid_password and not has_match_password:
-			self.write_form(username, "", "", "Password does not match!", email, "")
-		elif has_valid_username and not has_valid_password and not has_valid_email:
-			self.write_form(username, "", "Invalid password.", "", "", "Not a valid email address.")
+		
+		if not has_valid_username:
+			if has_valid_email:
+				self.write_form("", username_error, "", "", email, "")
+			elif not has_valid_email:
+				self.write_form("", username_error, "", "", "", email_error)
+		
+#		if has_valid_username and has_valid_password and has_match_password and has_valid_email:
+#			self.redirect("/Welcome?username=" + username)
+#		elif not has_valid_username and not has_valid_password and not has_match_password and not has_valid_email:
+#			self.write_form("", "Username must be between 3 and 20 characters.", "Passwords must be between 3 and 20 characters.", "Passwords do not match.", "", "That is not a valid email.")
+#		elif not has_valid_username and not has_valid_password and not has_match_password:
+#			self.write_form("", "Username must be between 3 and 20 characters.", "Passwords must be between 3 and 20 characters.", "Passwords do not match", "", "")
+#		elif has_valid_username and has_valid_password and not has_match_password:
+#			self.write_form(username, "", "", "Password does not match!", email, "")
+#		elif has_valid_username and not has_valid_password and not has_valid_email:
+#			self.write_form(username, "", "Passwords must be between 3 and 20 characters.", "", "", "Not a valid email address.")
 		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
