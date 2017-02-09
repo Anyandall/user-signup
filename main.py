@@ -147,11 +147,52 @@ class MainHandler(webapp2.RequestHandler):
 		greeting = "Thanks for logging in, " + username + "!"
 		
 		if not has_valid_username:
-			if has_valid_email:
-				self.write_form("", username_error, "", "", email, "")
+			if has_valid_email or email == "":
+				if has_valid_password:
+					if has_match_password:
+						self.write_form("", username_error, "", "", email, "")
+					elif not has_match_password:
+						self.write_form("", username_error, "", verify_error, email, "")
+				elif not has_valid_password:
+					if has_match_password:
+						self.write_form("", username_error, password_error, "", email, "")
+					elif not has_match_password:
+						self.write_form("", username_error, password_error, verify_error, email, "")
 			elif not has_valid_email:
-				self.write_form("", username_error, "", "", "", email_error)
-		
+				if has_valid_password:
+					if has_match_password:
+						self.write_form("", username_error, "", "", email, email_error)
+					elif not has_match_password:
+						self.write_form("", username_error, "", verify_error, email, email_error)
+						
+		elif has_valid_username:
+			if has_valid_password:
+				if has_match_password:
+					if has_valid_email or email == "":
+						self.redirect("/Welcome?username=" + username)
+					elif not has_valid_email:
+						self.write_form(username, "", "", "", "", email_error)
+				elif not has_match_password:
+					if has_valid_email or email == "":
+						self.write_form(username, "", "", verify_error, email, "")
+					elif not has_valid_email:
+						self.write_form(username, "", "", verify_error, email, email_error)
+			
+			elif not has_valid_password:
+				if has_match_password:
+					if has_valid_email or email == "":
+						self.write_form(username, "", password_error, "", email, "")
+					elif not has_valid_email:
+						self.write_form(username, "", password_error, "", email, email_error)
+				elif not has_match_password:
+					if has_valid_email or email == "":
+						self.write_form(username, "", password_error, verify_error, email, "")
+					elif not has_valid_email:
+						self.write_form(username, "", password_error, verify_error, email, email_error)
+						
+						
+					
+
 #		if has_valid_username and has_valid_password and has_match_password and has_valid_email:
 #			self.redirect("/Welcome?username=" + username)
 #		elif not has_valid_username and not has_valid_password and not has_match_password and not has_valid_email:
